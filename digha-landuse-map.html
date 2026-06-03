@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Digha Land Use Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="css/digha-landuse-map.css">
+</head>
+<body>
+  <aside>
+    <h1>Digha Land Use Map</h1>
+    <p class="subtitle">Detailed land-use and feature inventory for Digha, West Bengal. Click any mapped feature for source tags and mapped details.</p>
+
+    <div class="toolbar">
+      <button id="reloadBtn" type="button">Reload Data</button>
+      <button id="printBtn" type="button">Print / Save PDF</button>
+    </div>
+
+    <div class="upload-box">
+      <span>Add Local Shapefile</span>
+      <input id="shapefileInput" type="file" accept=".zip,application/zip,application/x-zip-compressed">
+      <div class="upload-actions">
+        <button id="clearShapeBtn" type="button">Clear Local Layer</button>
+      </div>
+      <p class="hint">Upload a zipped shapefile containing .shp, .shx, .dbf, and preferably .prj. WGS84/EPSG:4326 works best.</p>
+    </div>
+
+    <div class="upload-box">
+      <span>Load GitHub Land-Use Layer</span>
+      <input id="githubUrlInput" type="url" value="https://raw.githubusercontent.com/Bhaskar02/landuse_2026/refs/heads/main/landuse_842026.json" placeholder="Paste GitHub repo, GeoTIFF, shapefile zip, or GeoJSON URL">
+      <div class="upload-actions">
+        <button id="loadGithubBtn" type="button">Load GitHub Layer</button>
+        <button id="clearGithubBtn" type="button">Clear GitHub Layer</button>
+      </div>
+      <p class="hint">Use a public GitHub repo, .tif/.tiff GeoTIFF, .zip shapefile package, or GeoJSON file. Normal github.com links are converted automatically.</p>
+    </div>
+
+    <div class="status" id="status">Preparing the map...</div>
+
+    <div class="section-title">Legend</div>
+    <div class="legend" id="legend"></div>
+
+    <div class="section-title">Visible Detail</div>
+    <div class="layer-list" id="layerToggles"></div>
+
+    <div class="section-title">Coverage</div>
+    <div class="details">
+      <strong>Focus area:</strong> Old Digha, New Digha, Digha Mohana, nearby beach/coastal edge, tourism zone, transport corridors, and surrounding rural land.<br>
+      <strong>Data source:</strong> OpenStreetMap via Overpass API, loaded live in your browser.<br>
+      <strong>Note:</strong> Land-use quality depends on what local mappers have added to OpenStreetMap.
+    </div>
+  </aside>
+
+  <main>
+    <div id="map" aria-label="Interactive land use map of Digha"></div>
+    <button id="dashboardToggle" class="dashboard-toggle" type="button" aria-controls="analysisDashboard" aria-expanded="false">
+      Analysis
+    </button>
+    <div class="export-toolbar" aria-label="Export visible map">
+      <button id="exportPngBtn" type="button">Export PNG</button>
+      <button id="exportPdfBtn" type="button">Export PDF</button>
+    </div>
+    <form id="blockSearchForm" class="block-search-control" aria-label="Search block by name">
+      <label class="sr-only" for="blockSearchInput">Search block by name</label>
+      <input id="blockSearchInput" type="search" list="blockSearchOptions" placeholder="Search block name" autocomplete="off" disabled>
+      <datalist id="blockSearchOptions"></datalist>
+      <button id="blockSearchBtn" type="submit" disabled>Search</button>
+      <button id="clearBlockSearchBtn" type="button">Clear</button>
+    </form>
+    <section id="analysisDashboard" class="dashboard-panel is-hidden" aria-label="Digha land-use dashboard">
+      <div class="dashboard-header">
+        <span class="dashboard-kicker">Analysis Dashboard</span>
+        <button id="dashboardClose" class="dashboard-close" type="button" aria-label="Close analysis dashboard">×</button>
+        <h2>Digha Land Use & CRZ</h2>
+        <p>Building exposure, land-use area, and CRZ area summaries from the active 2026 datasets.</p>
+      </div>
+
+      <div class="dashboard-stats" aria-label="Building summary">
+        <div class="dashboard-stat">
+          <span>Total buildings</span>
+          <strong id="dashTotalBuildings">--</strong>
+        </div>
+        <div class="dashboard-stat">
+          <span>Inside CRZ</span>
+          <strong id="dashBuildingsInside">--</strong>
+        </div>
+        <div class="dashboard-stat">
+          <span>Outside CRZ</span>
+          <strong id="dashBuildingsOutside">--</strong>
+        </div>
+        <div class="dashboard-stat">
+          <span>Land-use area</span>
+          <strong id="dashLandUseArea">--</strong>
+        </div>
+      </div>
+
+      <div class="dashboard-section">
+        <div class="dashboard-section-title">Buildings by CRZ Zone</div>
+        <div id="dashCrzBuildingBars" class="dashboard-bars"></div>
+      </div>
+
+      <div class="dashboard-section">
+        <div class="dashboard-section-title">Land-Use Area Statistics</div>
+        <div id="dashLandUseAreaBars" class="dashboard-bars"></div>
+      </div>
+
+      <div class="dashboard-section">
+        <div class="dashboard-section-title">CRZ Area Statistics</div>
+        <div id="dashCrzAreaBars" class="dashboard-bars"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/shpjs@latest/dist/shp.min.js"></script>
+  <script src="https://unpkg.com/georaster"></script>
+  <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="js/digha-landuse-map.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDTohUF6mXQrZHjIDd562dMn7-Xj69UEps&callback=initMap" async defer></script>
+
+</body>
+</html>
